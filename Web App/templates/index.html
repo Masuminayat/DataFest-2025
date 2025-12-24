@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Living Standards in Pakistan</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  
+  <style>
+    /* === GLOBAL RESET & THEME === */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: linear-gradient(0deg, #fafbfb, #66bf72); color: #333; line-height: 1.6; scroll-behavior: smooth; overflow-x: hidden; }
+
+    /* === HERO SECTION === */
+    .hero {
+      height: 100vh;
+      background: linear-gradient(rgba(0, 0, 0, 0.766), rgba(2, 46, 7, 0.316)),
+                  url('/static/main.jpg') center/cover no-repeat;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; color: #fff; padding: 0 20px;
+    }
+
+    .hero h1 {
+      font-size: 4rem; font-weight: 800; margin-bottom: 30px;
+      animation: fadeInDown 1.5s ease-in-out;
+    }
+
+    .hero p {
+      font-size: 1.2rem; max-width: 700px; margin-bottom: 40px;
+      color: #ffffff;
+      animation: fadeInUp 1.5s ease-in-out;
+    }
+
+    .hero-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; animation: fadeInUp 1.7s ease-in-out; }
+    
+    .hero button {
+      background: linear-gradient(135deg, #013b09, #66bf72); color: #fff; border: none;
+      padding: 14px 32px; border-radius: 10px; font-size: 1.1rem;
+      cursor: pointer; font-weight: 600; transition: all 0.3s ease;
+    }
+
+    .hero button:hover { transform: scale(1.08); box-shadow: 0 8px 25px rgba(0, 255, 76, 0.3); }
+
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* === MAIN CONTENT CONTAINERS === */
+    .container { max-width: 1200px; margin: 50px auto; padding: 0 20px; display: none; opacity: 0; transition: opacity 0.5s ease; }
+    .active-section { display: block !important; opacity: 1 !important; }
+
+    h2 { margin-bottom: 20px; color: #000000; font-weight: 600; font-size: 1.6rem; }
+
+    /* === CARD STYLE === */
+    .card {
+      background: linear-gradient(135deg, #fafbfb, #66bf72); border-radius: 16px;
+      color: #000000;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 30px 35px; margin-bottom: 40px;
+      transition: all 0.3s ease;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+
+    /* === FORM ELEMENTS === */
+    label { display: block; margin-bottom: 8px; font-weight: 500; color: #000000; }
+
+    input[type="number"], select {
+      width: 100%; padding: 12px 16px; margin-bottom: 20px;
+      border: 1px solid #d1d5db; border-radius: 10px; font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: white;
+    }
+
+    input[type="number"]:focus, select:focus {
+      outline: none; border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+
+    .predict-btn {
+      background: linear-gradient(135deg, #013b09, #66bf72); color: #fff;
+      border: none; padding: 12px 25px; border-radius: 10px; font-size: 1rem;
+      cursor: pointer; font-weight: 600; transition: transform 0.2s, box-shadow 0.3s;
+      width: 100%;
+    }
+
+    .predict-btn:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(0, 255, 4, 0.3); }
+
+    /* === DASHBOARD CHARTS GRID === */
+    .charts-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
+        gap: 30px; 
+    }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    
+    .chart-box {
+      background: white; border-radius: 16px; height: 480px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+      padding: 10px;
+      border: 1px solid #f0f0f0; 
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: block; 
+      overflow: hidden; 
+      position: relative;
+    }
+    .chart-box:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+
+        /* === WIDE CHART CLASS (Add this) === */
+    .wide-chart {
+        grid-column: span 2; /* Yeh 2 columns ki jagah lega */
+    }
+
+    /* Mobile responsive fix: Choti screen pe wapis 1 column ho jaye */
+    @media (max-width: 1200px) { 
+        .wide-chart { 
+            grid-column: span 1 !important; 
+        } 
+    }
+
+    /* === PREDICTION RESULTS TABLE === */
+    table {
+      width: 100%; min-width: 100%; 
+      border-collapse: collapse; background: white;
+      border-radius: 14px; color: #000;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.1); overflow: hidden;
+    }
+
+    th, td { padding: 16px 32px; text-align: center; font-size: 1.05rem; }
+    
+    th {
+      background: linear-gradient(135deg, #013b09, #66bf72);
+      color: white; font-weight: 600; letter-spacing: 0.5px;
+    }
+    tr:nth-child(even) { background-color: #f5f5f5; }
+    tr:hover { background-color: #e8f5e9; transition: 0.3s ease; }
+
+    /* === RESULTS LAYOUT === */
+    .results-flex { display: flex; flex-direction: column; gap: 20px; margin-top: 30px; width: 100%; }
+    .graphs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+    @media (max-width: 900px) { .graphs-grid { grid-template-columns: 1fr; } }
+
+    #income_graph, #poverty_graph {
+      height: 380px !important; border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1); background: white; padding: 5px;
+      opacity: 0; transform: translateY(40px); transition: all 0.9s ease-out;
+    }
+    .graph-visible { opacity: 1 !important; transform: translateY(0) !important; }
+
+    /* === FOOTER === */
+    footer {
+      background:linear-gradient(135deg, #013b09, #66bf72);
+      color: black; text-align: center; padding: 20px 20px; margin-top: 50px;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    }
+    .footer-content { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .footer-logo {
+      width: 100px; height: 100px; border-radius: 30%;
+      object-fit: cover; box-shadow: 0 0 20px rgba(0, 255, 55, 0.553);
+      transition: transform 0.3s ease;
+    }
+    .footer-logo:hover { transform: scale(1.1) rotate(3deg); }
+    footer p { font-size: 1.1rem; font-weight: 500; line-height: 1.5; }
+
+    /* === BACK TO TOP === */
+    #backToTop {
+      position: fixed; bottom: 30px; right: 30px;
+      padding: 12px 16px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #013b09, #66bf72);
+      color: white; font-weight: 600; cursor: pointer;
+      display: none; transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 255, 64, 0.674); z-index: 100;
+    }
+    #backToTop:hover { transform: scale(1.1); }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1>Living Standards in Pakistan<br> A Data-Driven Insight using PSLM & HIES</h1>
+    <p>This project analyzes long-term trends in income, consumption, education, health, and household living conditions in Pakistan using PBS surveys. Visualize key socio-economic changes and forecast future outcomes.</p>
+    
+    <div class="hero-buttons">
+      <button id="btn-predict">Start Predicting ↓</button>
+      <button id="btn-charts">Explore Dashboard →</button>
+    </div>
+  </section>
+
+  <div id="section-predict" class="container">
+    <div class="card" data-aos="fade-up">
+      <h2>Forecast Future Trends (ML Model)</h2>
+      <form id="forecastForm">
+        <label for="target">Select Target Indicator:</label>
+        <select id="target" name="target" required>
+            <option value="Poverty">Poverty Rate</option>
+            <option value="Avg_Income_filled">Average Household Income</option>
+        </select>
+
+        <label for="years_ahead">Projection Years (3-10):</label>
+        <input type="number" id="years_ahead" name="years_ahead" min="3" max="10" value="3" required>
+        
+        <button type="submit" class="predict-btn">Generate Prediction</button>
+      </form>
+    </div>
+    
+    <div id="prediction-results"></div>
+  </div>
+
+  <div id="section-charts" class="container">
+    <div class="card" data-aos="fade-up">
+      <h2>Interactive Dashboard (Top 10 Indicators)</h2>
+      <p style="margin-bottom:20px; color:#000;">Real-time visualization of key socio-economic data.</p>
+      
+      <div class="charts-grid">
+      <div class="chart-box" id="c1" data-aos="fade-up" data-aos-delay="0">Loading Workforce...</div>
+      <div class="chart-box" id="c2" data-aos="fade-up" data-aos-delay="100">Loading Literacy...</div>
+      <div class="chart-box" id="c3" data-aos="fade-up" data-aos-delay="200">Loading Toilet Access...</div>
+      <div class="chart-box" id="c4" data-aos="fade-up" data-aos-delay="300">Loading Economy...</div>
+      <div class="chart-box" id="c5" data-aos="fade-up" data-aos-delay="100">Loading Gender Parity...</div>
+      <div class="chart-box" id="c6" data-aos="fade-up" data-aos-delay="200">Loading Immunization...</div>
+      <div class="chart-box wide-chart" id="c13" data-aos="fade-up" data-aos-delay="200">Loading Vulnerable Emp...</div>
+      <div class="chart-box" id="c7" data-aos="fade-up" data-aos-delay="300">Loading Diarrhoea...</div>
+      <div class="chart-box" id="c8" data-aos="fade-up" data-aos-delay="400">Loading Tetanus...</div>
+      <div class="chart-box" id="c9" data-aos="fade-up" data-aos-delay="200">Loading Tenure...</div>
+      <div class="chart-box" id="c10" data-aos="fade-up" data-aos-delay="300">Loading Urban Disparity...</div>
+
+      <div class="chart-box" id="c11" data-aos="fade-up" data-aos-delay="100">Loading Savings Trend...</div>
+      <div class="chart-box" id="c12" data-aos="fade-up" data-aos-delay="300">Loading Infrastructure...</div>
+    </div>
+    </div>
+  </div>
+
+  <footer data-aos="fade-up">
+    <div class="footer-content">
+      <img src="/static/logo.png" alt="Team Emergency Logo" class="footer-logo">
+      <p>Semester Project for <strong>IDS</strong><br>Made by <strong>TEAM ITTEFAQAN</strong></p>
+    </div>
+  </footer>
+
+  <button id="backToTop">↑ Top</button>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    // Initialize AOS
+    AOS.init({ duration: 800, once: true, offset: 120 });
+
+    const secPredict = document.getElementById('section-predict');
+    const secCharts = document.getElementById('section-charts');
+    const backToTop = document.getElementById("backToTop");
+
+    // === NAVIGATION LOGIC ===
+    function showSection(section) {
+        secPredict.classList.remove('active-section');
+        secCharts.classList.remove('active-section');
+        section.classList.add('active-section');
+        
+        // Smooth scroll
+        setTimeout(() => {
+            const yOffset = -50;
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            
+            // CRITICAL: Refresh AOS because layout changed
+            AOS.refresh();
+        }, 100);
+    }
+
+    document.getElementById('btn-predict').addEventListener('click', () => showSection(secPredict));
+    document.getElementById('btn-charts').addEventListener('click', () => {
+        showSection(secCharts);
+        loadAllCharts();
+    });
+
+    window.addEventListener("scroll", () => {
+      backToTop.style.display = window.scrollY > 400 ? "block" : "none";
+    });
+    backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    // === DASHBOARD CHARTS LOADING LOGIC (Top 10) ===
+    let chartsLoaded = false;
+    async function loadAllCharts() {
+        if(chartsLoaded) return;
+        const charts = [
+            {url: '/api/literacy-chart', id: 'c1'},
+            {url: '/api/economy-chart', id: 'c2'},
+            {url: '/api/workforce-chart', id: 'c3'},
+            {url: '/api/disparity-chart', id: 'c4'},
+            {url: '/api/gpi-chart', id: 'c5'},
+            {url: '/api/immunization-chart', id: 'c6'},
+            {url: '/api/diarrhoea-chart', id: 'c7'},
+            {url: '/api/tetanus-chart', id: 'c8'},
+            {url: '/api/tenure-chart', id: 'c9'},
+            {url: '/api/toilet-chart', id: 'c10'},
+            { id: 'c11', url: '/api/savings-chart' },        // Savings Rate Trend
+             // Urban vs Rural Vulnerability
+            { id: 'c12', url: '/api/infrastructure-donut' },
+            { id: 'c13', url: '/api/vulnerable-emp-chart' } // Core Infrastructure Portfolio
+        ];
+
+        for (const c of charts) {
+            fetchAndPlot(c.url, c.id);
+        }
+        chartsLoaded = true;
+    }
+
+    async function fetchAndPlot(url, divId) {
+        try {
+            const res = await fetch(url);
+            const json = await res.json();
+            const container = document.getElementById(divId);
+            container.innerHTML = "";
+            
+            if(json.error) {
+                container.innerHTML = `<div style="text-align:center; color:#d32f2f; padding-top:150px;">
+                    <span style="font-size:2rem;">⚠️</span><br>Data Not Found
+                </div>`;
+            } else {
+                const config = {responsive: true, displayModeBar: false};
+                const layout = {...json.layout, autosize: true, margin: {l:50, r:20, t:50, b:50}};
+                Plotly.newPlot(divId, json.data, layout, config);
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById(divId).innerHTML = `<p style="color:red; text-align:center; padding-top:150px;">Connection Failed</p>`;
+        }
+    }
+
+    // === FORECAST FORM LOGIC ===
+    document.getElementById('forecastForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const originalText = btn.innerText;
+        btn.innerText = "Computing AI Model...";
+        btn.disabled = true;
+
+        const fd = new FormData(e.target);
+        
+        try {
+            const res = await fetch('/predict_future', {method:'POST', body:fd});
+            const d = await res.json();
+            
+            const resultsDiv = document.getElementById('prediction-results');
+            
+            resultsDiv.innerHTML = `
+                <div class="results-flex">
+                    <div class="card" data-aos="fade-up">
+                        <h3>Forecast Data</h3>
+                        <table>
+                            <tr><th>Year</th><th>Projected Income</th><th>Projected Poverty</th></tr>
+                            ${d.predictions.map(r => `
+                                <tr>
+                                    <td>${r.year}</td>
+                                    <td>${r.Avg_Income_filled.toLocaleString()}</td>
+                                    <td>${r.Poverty}%</td>
+                                </tr>`).join('')}
+                        </table>
+                    </div>
+                    
+                    <div class="graphs-grid">
+                        <div id="income_graph" class="graph-hidden"></div>
+                        <div id="poverty_graph" class="graph-hidden"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Refresh AOS specifically for the new dynamic content
+            setTimeout(() => AOS.refresh(), 500);
+
+            // Render Graphs
+            const years = d.predictions.map(r => r.year);
+            const histYears = d.hist_years;
+            const commonLayout = {margin: {l:50, r:20, t:50, b:50}};
+
+            Plotly.newPlot('income_graph', [
+                {x: histYears, y: d.historical.map(h => h.Avg_Income_filled), name:'History', line:{color:'green'}},
+                {x: years, y: d.predictions.map(p => p.Avg_Income_filled), name:'Forecast', line:{color:'orange', dash:'dash'}}
+            ], {...commonLayout, title:'Income Forecast'});
+
+            Plotly.newPlot('poverty_graph', [
+                {x: histYears, y: d.historical.map(h => h.Poverty), name:'History', line:{color:'green'}},
+                {x: years, y: d.predictions.map(p => p.Poverty), name:'Forecast', line:{color:'red', dash:'dash'}}
+            ], {...commonLayout, title:'Poverty Forecast'});
+
+            // Animate
+            setTimeout(() => document.getElementById('income_graph').classList.add('graph-visible'), 100);
+            setTimeout(() => document.getElementById('poverty_graph').classList.add('graph-visible'), 300);
+
+        } catch(err) {
+            console.error(err);
+            alert("Prediction failed. Check server console.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+  </script>
+</body>
+</html>
